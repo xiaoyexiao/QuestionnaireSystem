@@ -19,7 +19,7 @@
                   prefix-icon="el-icon-lock" clearable="true"></el-input>
       </li>
     </ul>
-    <button class="submitButton">登录</button>
+    <button class="submitButton" @click="Login">登录</button>
     <a href="#">立即注册</a>
   </div>
 </div>
@@ -34,6 +34,11 @@ export default {
       psw: '',
     };
   },
+  methods:{
+    Login(){
+      this.$router.push('/ ')
+    }
+  }
 };
 </script>
 <style scoped>
