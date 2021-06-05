@@ -15,6 +15,7 @@ export default {
 html,body{
   height:100%;
   width:100%;
+  font: 12px/1.5 "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Microsoft YaHei","Microsoft YaHei UI","微软雅黑", sans-serif;
 }
 #app{
   width: 100%;
