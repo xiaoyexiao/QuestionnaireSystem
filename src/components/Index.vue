@@ -8,7 +8,7 @@
                   </span>
     </el-dialog>
     <div class="header">
-      <div class="w clearfix">
+      <div class="w">
         <div class="logo">
           <a href="http://localhost:8080/main" class="logoHover"></a>
           <a href="http://localhost:8080/main" class="logoText">问卷星</a>
@@ -67,7 +67,7 @@
       </ul>
     </div>
     <div class="w main">
-      <div class="main-block clearfix">
+      <div class="main-block">
         <div class="main-block-header">
           <h2 class="fl">问卷列表</h2>
           <a href="#" @click="searchQuestionnaire"><i class="el-icon-search"></i></a>
@@ -92,7 +92,7 @@
           </span>
         </div>
         <ul>
-          <li v-for="item in questionnaires">
+          <li v-for="item in questionnaires" class="main-li">
             <div class="item-top">
               <span class="item-top-title fl">{{ item.title }}</span>
               <span class="item-top-date fr">{{ item.date }}</span>
@@ -102,10 +102,71 @@
               <span class="item-top-id fr">ID:{{ item.id }}</span>
             </div>
             <div class="item-bottom">
+              <div class="bottom-left">
+                <ul>
+                  <li>
+                    <a href="#">
+                      <i class="icon design-icon"></i>
+                      设计问卷
+                      <i class="el-icon-caret-bottom"></i>
+                    </a>
+                    <ul>
+                      <li><a href="#">设计问卷</a></li>
+                      <li><a href="#">编辑问卷</a></li>
+                      <li><a href="#">问卷设置</a></li>
+                      <li><a href="#">问卷外观</a></li>
+                      <li><a href="#">红包&奖品</a></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <a href="#">
+                      <i class="icon send-icon"></i>
+                      发送问卷
+                      <i class="el-icon-caret-bottom"></i>
+                    </a>
+                    <ul>
+                      <li><a href="#">链接&二维码</a></li>
+                      <li><a href="#">微信发送</a></li>
+                      <li><a href="#">样本服务</a></li>
+                      <li><a href="#">互填问卷</a></li>
+                      <li><a href="#">申请推荐</a></li>
+                    </ul>
+                  </li>
+                  <li>
+                    <a href="#">
+                      <i class="icon analysis-icon"></i>
+                      分析&下载
+                      <i class="el-icon-caret-bottom"></i>
+                    </a>
+                    <ul>
+                      <li><a href="#">统计&分析</a></li>
+                      <li><a href="#">查看下载答卷</a></li>
+                      <li><a href="#">来源分析</a></li>
+                      <li><a href="#">问卷外观</a></li>
+                      <li><a href="#">红包&奖品</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+              <div class="bottom-right fr">
+                <a href="javascript:void(0)">
+                  <i class="publish-icon" :class="[{'el-icon-video-play':item.status===0},{'el-icon-video-pause':item.status===1}]"></i>
+                  {{ item.status===0?'发布':'停止' }}
+                </a>
+                <a href="javascript:void(0)">
+                  <i class="el-icon-delete"></i>删除
+                </a>
+              </div>
             </div>
           </li>
         </ul>
+        <div class="clearfix blank"></div>
+        <div class="w footer">
+          <i class="mini-logo"></i>
+          <span>不止问卷调查/在线考试</span>
+        </div>
       </div>
+      <div style="clear:both"></div>
     </div>
   </div>
 </template>
@@ -138,7 +199,7 @@ export default {
           id: 1,
           title: '2',
           date: '2018-09-12',
-          status: 0,
+          status: 1,
           number: 13
         },
         {
@@ -154,7 +215,36 @@ export default {
           date: '2018-09-12',
           status: 0,
           number: 13
-        },{
+        },
+        {
+          id: 1,
+          title: '2',
+          date: '2018-09-12',
+          status: 0,
+          number: 13
+        },
+        {
+          id: 1,
+          title: '2',
+          date: '2018-09-12',
+          status: 0,
+          number: 13
+        },
+        {
+          id: 1,
+          title: '2',
+          date: '2018-09-12',
+          status: 0,
+          number: 13
+        },
+        {
+          id: 1,
+          title: '2',
+          date: '2018-09-12',
+          status: 0,
+          number: 13
+        },
+        {
           id: 1,
           title: '2',
           date: '2018-09-12',
@@ -179,7 +269,6 @@ export default {
 </script>
 <style scoped>
 .container {
-  height: 100%;
   background-color: #f5f5f5;
 }
 
@@ -306,7 +395,6 @@ export default {
   padding-left: 40px;
   display: block;
   text-decoration: none;
-/ / background-color: #efefef;
 }
 
 .left-block li a i {
@@ -323,6 +411,8 @@ export default {
   background-color: #e8e8e8;
 }
 
+.main{
+}
 .main-block {
   float: right;
   width: 1052px;
@@ -367,7 +457,7 @@ export default {
   margin-right: 20px;
 }
 
-.main-block ul li{
+.main-li{
   height: 121px;
   background-color: #fff;
   border-radius: 2px;
@@ -375,20 +465,20 @@ export default {
   box-shadow: 0px 0px 4px 0px #f0f0f0;
   border: 1px solid #E6E6E6;
 }
-.main-block ul li:hover{
+.main-li:hover{
   box-shadow: 0px 0px 10px 0px #e8e8e8;
   border: 1px solid rgba(217,217,217,1);
 }
-.main-block ul li:first-child{
+.main-block ul .main-li:first-child{
   margin-top: 20px;
 }
-.main-block ul li .item-top{
+.main-li .item-top{
   height: 22px;
   padding: 13px 24px 0;
   font-size: 12px;
 }
 .item-top span{
-  margin-right: 10px;
+  margin-right: 25px;
 }
 .item-top .point{
   position: relative;
@@ -405,5 +495,88 @@ export default {
   line-height: 36px;
   padding: 18px 0 18px;
   border-top: 1px solid #f5f5f5;
+}
+.item-bottom .bottom-left>ul>li{
+  float: left;
+  margin-right: 20px;
+}
+.item-bottom .icon{
+  display: inline-block;
+  width: 22px;
+  height: 28px;
+  background-size: cover;
+}
+.design-icon{
+  background-image: url("../assets/img/icon-design@2x.png");
+}
+.send-icon{
+  background-image: url("../assets/img/icon-spread@2x.png");
+}
+.analysis-icon{
+  background-image: url("../assets/img/icon-data@2x.png");
+}
+.item-bottom a{
+text-decoration: none;
+  font-size: 14px;
+  color: #7a7a7a;
+}
+.item-bottom a:hover{
+  color: dodgerblue;
+}
+.item-bottom ul li ul{
+  position: absolute;
+  border-radius: 4px;
+  border: 1px solid #D9D9D9;
+  z-index: 999;
+}
+.item-bottom ul li ul li{
+  display: none;
+  float: none;
+  width: 112px;
+  height: 33px;
+  font-size: 13px;
+  line-height: 33px;
+  text-align: center;
+  background-color: white;
+  color: #000;
+  border-top: 1px solid rgba(231, 231, 231, 0.5);
+}
+.item-bottom ul li:hover ul li{
+  display: block;
+}
+.item-bottom .bottom-right{
+  font-size: 15px;
+  color: #7a7a7a;
+}
+.bottom-right i{
+  font-size: 18px;
+  color: #000000;
+}
+.bottom-right a{
+  margin-right: 15px;
+}
+.bottom-right a:hover{
+  color: black;
+}
+.main-block .blank{
+  height: 100px;
+}
+.footer{
+  position: relative;
+  height: 30px;
+  width: 100%;
+}
+.footer .mini-logo{
+  position: absolute;
+  left: 306px;
+  width: 48px;
+  height: 16px;
+  background-image: url("../assets/img/logo-small.png");
+  background-size: cover;
+}
+.footer span{
+  display: block;
+  margin-left: 366px;
+  color: #7a7a7a;
 }
 </style>
