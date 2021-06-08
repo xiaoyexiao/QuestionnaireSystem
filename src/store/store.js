@@ -3,11 +3,11 @@ import Vuex from 'vuex'
 Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
-    status: 0
+    id:''
   },
   mutations: {
-    setId (state, status) {
-      state.status = status
+    offId(state){ // 退出登录
+      state.id=''
     }
   },
   getters: {

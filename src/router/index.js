@@ -5,6 +5,7 @@ import Index from "../components/Index";
 import QuestionnaireResult from "../components/QuestionnaireResult";
 import QuestionnaireFilling from "../components/QuestionnaireFilling";
 import QuestionnaireEdit from "../components/QuestionnaireEdit";
+import QuestionnaireCheck from "../components/QuestionnaireCheck";
 
 Vue.use(Router);
 
@@ -39,6 +40,11 @@ export default new Router({
       path: '/questionnaireResult',
       name: 'QuestionnaireResult',
       component: QuestionnaireResult,
+    },
+    {
+      path: '/questionnaireCheck',
+      name: 'QuestionnaireCheck',
+      component: QuestionnaireCheck,
     },
   ],
 });

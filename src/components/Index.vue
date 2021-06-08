@@ -1,11 +1,23 @@
 <template>
   <div class="container">
-    <el-dialog :visible.sync="centerDialogVisible" width="25%" center style="line-height: 10px" class="dialog">
+    <el-dialog :visible.sync="exitDialogVisible" width="25%" center style="line-height: 10px" class="dialog">
       <span>确认退出？</span>
       <span slot="footer" class="dialog-footer" style="font-size: 10px">
                   <el-button type="primary" @click="exit" style="margin-right: 50px" id="button1">确 定</el-button>
-                  <el-button @click="centerDialogVisible = false" id="button2">取 消</el-button>
+                  <el-button @click="exitDialogVisible = false" id="button2">取 消</el-button>
                   </span>
+    </el-dialog>
+    <el-dialog :visible.sync="editDialogVisible" width="846px" center>
+      <div class="editBox">
+        <EditMethodSelectDialog></EditMethodSelectDialog>
+      </div>
+    </el-dialog>
+    <el-dialog :visible.sync="createDialogVisible" width="30%" center>
+      <div class="createBox">
+        <h1>创建调查问卷</h1>
+        <el-input v-model="createTitle" placeholder="请输入标题"></el-input>
+        <el-button type="primary" @click.native="toCreate">立即创建</el-button>
+      </div>
     </el-dialog>
     <div class="header">
       <div class="w">
@@ -23,7 +35,7 @@
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item>用户信息</el-dropdown-item>
                 <el-dropdown-item>客服中心</el-dropdown-item>
-                <el-dropdown-item @click.native="centerDialogVisible=true">退出</el-dropdown-item>
+                <el-dropdown-item @click.native="exitDialogVisible=true">退出</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
           </div>
@@ -43,7 +55,7 @@
       </div>
     </div>
     <div class="left-block">
-      <a href="/create" class="createButton">
+      <a href="#" class="createButton" @click="createDialogVisible=true">
         <i class="el-icon-plus"></i>
         <span>创建问卷</span>
       </a>
@@ -111,10 +123,10 @@
                       <i class="el-icon-caret-bottom"></i>
                     </a>
                     <ul>
-                      <li><a href="#">设计问卷</a></li>
-                      <li><a href="#">编辑问卷</a></li>
+                      <li><a href="#">设计向导</a></li>
+                      <li><a href="#" @click="editDialogVisible = true">编辑问卷</a></li>
                       <li><a href="#">问卷设置</a></li>
-                      <li><a href="#">问卷外观</a></li>
+                      <li><a href="#" @click="questionnaireCheck">问卷外观</a></li>
                       <li><a href="#">红包&奖品</a></li>
                     </ul>
                   </li>
@@ -171,12 +183,20 @@
   </div>
 </template>
 <script>
+import EditMethodSelectDialog from "./EditMethodSelectDialog";
+
 export default {
   name: "Main",
+  components:{
+    EditMethodSelectDialog
+  },
   data() {
     return {
       userName: 'xiaoyexiao',
-      centerDialogVisible: false,
+      exitDialogVisible: false,
+      editDialogVisible: false,
+      createDialogVisible: false,
+      createTitle:'',
       sortBy: '时间倒序',
       sortByList: [
         {
@@ -256,13 +276,20 @@ export default {
   },
   methods: {
     exit() {
+      this.$store.commit("offId")
       this.$router.push('/login')
     },
     changeSort(data) {
       this.sortBy = data
     },
-    searchQuestionnaire() {
+    searchQuestionnaire() { // 关键字搜索
       console.log('yes')
+    },
+    questionnaireCheck(){ //问卷查看（只能查看不能提交）
+      this.$router.push('/questionnaireCheck')
+    },
+    toCreate(){
+      this.$router.push({name:"QuestionnaireEdit",params:{title:this.createTitle}})
     }
   }
 }
@@ -578,5 +605,19 @@ text-decoration: none;
   display: block;
   margin-left: 366px;
   color: #7a7a7a;
+}
+.editBox{
+  width: 746px;
+  height: 380px;
+  margin: 0 auto;
+}
+.createBox{
+  height: 270px;
+  padding: 60px;
+  text-align: center;
+}
+.createBox h1,.createBox .el-input{
+  display: block;
+  margin-bottom: 50px;
 }
 </style>

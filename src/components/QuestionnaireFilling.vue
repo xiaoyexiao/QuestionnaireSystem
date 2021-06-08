@@ -1,6 +1,5 @@
 <template>
 <div class="container">
-<!--  <h1>{{this.$route.params.id}} </h1>-->
   <div class="header w"></div>
   <div class="w">
     <div class="content">
@@ -14,14 +13,14 @@
             <div v-if="item.style===1">
               <span v-show="item.must" style="color: red">*</span>
               <h4>{{index+1}}. {{item.question}}</h4>
-              <el-radio v-for="option in item.options" v-model="item.value" :label="option.label">{{ option.value }}</el-radio>
+              <el-radio v-for="option in item.options" :key="option.value" v-model="item.value" :label="option.label">{{ option.value }}</el-radio>
             </div>
             <div v-else-if="item.style===2">
               <span v-show="item.must" style="color: red">*</span>
               <h4>{{index+1}}. {{item.question}}</h4>
               <span>[多选题]</span>
               <el-checkbox-group v-model="item.checkList">
-                <el-checkbox v-for="option in item.options" :label="option.value"></el-checkbox>
+                <el-checkbox v-for="option in item.options" :key="option" :label="option.value"></el-checkbox>
               </el-checkbox-group>
             </div>
             <div v-else>
@@ -32,7 +31,7 @@
           </li>
         </ul>
         <div class="submit">
-          <el-button type="primary">提交</el-button>
+          <el-button type="primary" @click="onSubmit">提交</el-button>
         </div>
         <div class="footer"></div>
       </div>
@@ -117,6 +116,22 @@ export default {
           answer: ''
         },
       ]
+    }
+  },
+  methods:{
+    onSubmit(){
+      if(window.location.href.indexOf('questionnaireCheck')!=-1){
+        this.$message({
+          message: '提示：问卷预览页面，只能预览，不能提交！',
+          type: 'warning'
+        });
+      }
+      else{
+        this.$message({
+          message: '恭喜你，这是一条成功消息',
+          type: 'success'
+        });
+      }
     }
   }
 }
