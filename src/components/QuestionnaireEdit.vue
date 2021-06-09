@@ -77,7 +77,7 @@
                   <h4>{{index+1}}. {{item.question}}</h4>
                   <span>[多选题]</span>
                   <el-checkbox-group v-model="item.checkList">
-                    <el-checkbox v-for="option in item.options" :key="option" :label="option.value"></el-checkbox>
+                    <el-checkbox v-for="option in item.options" :key="option.value" :label="option.label"></el-checkbox>
                   </el-checkbox-group>
                   <div class="spanRight">
                     <div class="stuff">
@@ -310,7 +310,7 @@ export default {
     addOption(index,i){
       let item=JSON.parse(JSON.stringify(this.List[index].options[i]))
       item.label=this.count++
-      item.value=''
+      item.value='默认内容'
       this.List[index].options.splice(i+1,0,item)
     },
     deleteOption(index,i){

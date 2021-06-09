@@ -3,20 +3,18 @@
     <div class="header">
       <img src="../assets/img/logo.png" alt="#" class="logo">
       <div class="header-button">
-        <el-button round style="margin-right: 20px" plain="true">登录</el-button>
-        <el-button round plain="true">返回首页</el-button>
+        <el-button round style="margin-right: 20px" plain>登录</el-button>
+        <el-button round plain>返回首页</el-button>
       </div>
     </div>
     <div class="box">
       <h1>问卷星登录</h1>
       <ul style="padding: 0 50px 15px 50px">
         <li style="margin-bottom: 30px;">
-          <el-input v-model="userName" placeholder="用户名"
-                    prefix-icon="el-icon-user" clearable="true"></el-input>
+          <el-input v-model="userName" placeholder="用户名" prefix-icon="el-icon-user" clearable></el-input>
         </li>
         <li>
-          <el-input v-model="psw" placeholder="密码"
-                    prefix-icon="el-icon-lock" clearable="true"></el-input>
+          <el-input v-model="psw" placeholder="密码" prefix-icon="el-icon-lock" clearable></el-input>
         </li>
       </ul>
       <button class="submitButton" @click="Login">登录</button>
@@ -36,7 +34,25 @@ export default {
   },
   methods: {
     Login() {
-      this.$router.push('/main')
+      this.$axios.get('http://localhost:8080/user/login', {
+        params: {
+          name: this.userName,
+          psw: this.psw
+        }
+      }).then(res => {
+        if(res.data.result===1){
+          this.$store.commit("setId",res.data.id)
+          this.$store.commit("setName",res.data.name)
+          sessionStorage.setItem("store",JSON.stringify(this.$store.state))
+          this.$router.push('/main')
+        }
+        else{
+          this.$message({
+            message: '账号或密码错误！',
+            type: 'warning'
+          });
+        }
+      })
     }
   }
 };

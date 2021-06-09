@@ -14,16 +14,28 @@
     </el-dialog>
     <el-dialog :visible.sync="createDialogVisible" width="30%" center>
       <div class="createBox">
-        <h1>创建调查问卷</h1>
+        <h1>新建调查问卷</h1>
         <el-input v-model="createTitle" placeholder="请输入标题"></el-input>
         <el-button type="primary" @click.native="toCreate">立即创建</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog :visible.sync="urlDialogVisible" width="30%" center class="urlDialog" style="border-radius: 5px">
+      <div style="padding: 20px 20px 0 20px">
+        <span v-if="urlDialogControl===0" style="display: block;font-size: 20px;color: black;font-weight: bold;
+      margin-bottom: 10px;position: relative;bottom: 10px">问卷发布成功</span>
+        <span v-if="urlDialogControl!==2" style="color: black">问卷访问链接为：</span>
+        <span v-if="urlDialogControl!==2" style="color: #898989">{{url}}</span>
+        <span v-if="urlDialogControl===2" style="color: black">此问卷还未发布，请发布后再查看！</span>
+        <div style="margin-top: 20px;text-align: center">
+          <el-button type="primary" @click="urlDialogVisible=false">好的</el-button>
+        </div>
       </div>
     </el-dialog>
     <div class="header">
       <div class="w">
         <div class="logo">
-          <a href="http://localhost:8080/main" class="logoHover"></a>
-          <a href="http://localhost:8080/main" class="logoText">问卷星</a>
+          <a href="http://localhost:8081/main" class="logoHover"></a>
+          <a href="http://localhost:8081/main" class="logoText">问卷星</a>
         </div>
         <div class="fr header-right-block">
           <div class="fr user-block">
@@ -83,7 +95,7 @@
         <div class="main-block-header">
           <h2 class="fl">问卷列表</h2>
           <a href="#" @click="searchQuestionnaire"><i class="el-icon-search"></i></a>
-          <el-input class="search fr" v-model="search"
+          <el-input class="search fr" v-model="searchText"
                     placeholder="请输入问卷名进行搜索..."/>
           <span class="dropdown fr">
             <el-dropdown @command="changeSort">
@@ -97,18 +109,19 @@
             <span class="el-dropdown-link" style="margin-left: 10px">状态</span><i
               class="el-icon-d-caret el-icon--right"></i>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>已发布</el-dropdown-item>
-              <el-dropdown-item>未发布</el-dropdown-item>
+              <el-dropdown-item @click.native="setStatus(0)">查看所有</el-dropdown-item>
+              <el-dropdown-item @click.native="setStatus(1)">已发布</el-dropdown-item>
+              <el-dropdown-item @click.native="setStatus(2)">未发布</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
           </span>
         </div>
         <ul>
-          <li v-for="item in questionnaires" class="main-li">
+          <li v-for="(item,index) in filteredQuestionnaires" class="main-li">
             <div class="item-top">
               <span class="item-top-title fl">{{ item.title }}</span>
-              <span class="item-top-date fr">{{ item.date }}</span>
-              <span class="item-top-number fr">答卷:{{ item.number }}</span>
+              <span class="item-top-date fr">{{ item.createDate }}</span>
+              <span class="item-top-number fr">答卷:{{ item.answersheetNumber }}</span>
               <span class="item-top-status fr">{{ item.status===0?'未发布':'已发布' }}</span>
               <i class="point fr"></i>
               <span class="item-top-id fr">ID:{{ item.id }}</span>
@@ -137,7 +150,7 @@
                       <i class="el-icon-caret-bottom"></i>
                     </a>
                     <ul>
-                      <li><a href="#">链接&二维码</a></li>
+                      <li><a href="#" @click="viewUrl(item)">链接&二维码</a></li>
                       <li><a href="#">微信发送</a></li>
                       <li><a href="#">样本服务</a></li>
                       <li><a href="#">互填问卷</a></li>
@@ -161,11 +174,11 @@
                 </ul>
               </div>
               <div class="bottom-right fr">
-                <a href="javascript:void(0)">
+                <a href="javascript:void(0)" @click="publishOrNot(item)">
                   <i class="publish-icon" :class="[{'el-icon-video-play':item.status===0},{'el-icon-video-pause':item.status===1}]"></i>
                   {{ item.status===0?'发布':'停止' }}
                 </a>
-                <a href="javascript:void(0)">
+                <a href="javascript:void(0)" @click="deleteQuestionnaire(item)">
                   <i class="el-icon-delete"></i>删除
                 </a>
               </div>
@@ -192,15 +205,21 @@ export default {
   },
   data() {
     return {
-      userName: 'xiaoyexiao',
+      userName: '',
       exitDialogVisible: false,
       editDialogVisible: false,
       createDialogVisible: false,
+      urlDialogVisible: false,
+      urlDialogControl: 0, // 0是发布时候，1是查看链接，2是显示问卷未发布
       createTitle:'',
       sortBy: '时间倒序',
+      search: '',
+      searchText: '',
+      status: 0,
+      url:'',
       sortByList: [
         {
-          name: '时间倒序'
+          name: '时间倒序',
         },
         {
           name: '时间正序'
@@ -209,89 +228,171 @@ export default {
           name: '答卷倒序'
         },
         {
-          name: '倒卷正序'
+          name: '答卷正序'
         },
       ],
-      number: 5,
-      search: '',
-      questionnaires: [
-        {
-          id: 1,
-          title: '2',
-          date: '2018-09-12',
-          status: 1,
-          number: 13
-        },
-        {
-          id: 2,
-          title: '1',
-          date: '2018-09-12',
-          status: 0,
-          number: 13
-        },
-        {
-          id: 3,
-          title: '3',
-          date: '2018-09-12',
-          status: 0,
-          number: 13
-        },
-        {
-          id: 1,
-          title: '2',
-          date: '2018-09-12',
-          status: 0,
-          number: 13
-        },
-        {
-          id: 1,
-          title: '2',
-          date: '2018-09-12',
-          status: 0,
-          number: 13
-        },
-        {
-          id: 1,
-          title: '2',
-          date: '2018-09-12',
-          status: 0,
-          number: 13
-        },
-        {
-          id: 1,
-          title: '2',
-          date: '2018-09-12',
-          status: 0,
-          number: 13
-        },
-        {
-          id: 1,
-          title: '2',
-          date: '2018-09-12',
-          status: 0,
-          number: 13
+      questionnaires:[]
+    }
+  },
+  computed: {
+    filteredQuestionnaires: function (){
+      // 计算属性，得出经过三个条件过滤的数据
+      let list= [];
+      for (let i = 0;i < this.questionnaires.length; i++)
+      {
+        if (this.questionnaires[i].title.search(this.search) !== -1) {
+          if(this.status===0||this.status===1&&this.questionnaires[i].status===1||
+            this.status===2&&this.questionnaires[i].status===0)
+            list.push(this.questionnaires[i]);
         }
-      ]
+      }
+      switch (this.sortBy){
+        case "时间倒序":{
+          list.sort(function (a,b){
+            if(a.createDate.toString()<b.createDate.toString())
+              return 1
+            else return -1
+          })
+          break
+        }
+        case "时间正序":{
+          list.sort(function (a,b){
+            if(a.createDate.toString()>b.createDate.toString())
+              return 1
+            else return -1
+          })
+          break
+        }
+        case "答卷倒序":{
+          list.sort(function (a,b){
+            return b.answersheetNumber-a.answersheetNumber
+          })
+          break
+        }
+        case "答卷正序":{
+          list.sort(function (a,b){
+            return a.answersheetNumber-b.answersheetNumber
+          })
+          break
+        }
+      }
+      return list
     }
   },
   methods: {
     exit() {
-      this.$store.commit("offId")
+      // 退出登录清空存储
+      sessionStorage.removeItem("store")
       this.$router.push('/login')
     },
     changeSort(data) {
       this.sortBy = data
     },
+    setStatus(num){
+      this.status=num
+    },
     searchQuestionnaire() { // 关键字搜索
-      console.log('yes')
+      this.search=this.searchText
     },
     questionnaireCheck(){ //问卷查看（只能查看不能提交）
       this.$router.push('/questionnaireCheck')
     },
     toCreate(){
       this.$router.push({name:"QuestionnaireEdit",params:{title:this.createTitle}})
+    },
+    deleteQuestionnaire(item){
+      let id=item.id
+      this.$confirm('确定删除该问卷?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        for (let k = 0; k < this.questionnaires.length; k++){
+          console.log(this.questionnaires[k])
+          console.log(k)
+          if(this.questionnaires[k]===item){
+            this.questionnaires.splice(k,1)
+          }
+        }
+        this.$message({
+          type: 'success',
+          message: '删除成功!'
+        });
+        this.$axios.get('http://localhost:8080/questionnaire/deleteQuestionnaire', {
+          params: {
+            id: id
+          }
+        })
+      }).catch(() => {});
+    },
+    publishOrNot(item){
+      let index
+      for (let k = 0; k < this.questionnaires.length; k++){
+        console.log(this.questionnaires[k])
+        console.log(k)
+        if(this.questionnaires[k]===item){
+          index=k
+          break
+        }
+      }
+      if(item.status===1){
+        this.$confirm('状态设为“停止”后将不能填写，是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.questionnaires[index].status=0
+          this.$axios.get('http://localhost:8080/questionnaire/changeStatus', {
+            params: {
+              id: item.id
+            }
+          }).then(res=>{
+          })
+        }).catch(() => {});
+      }
+      else{
+        this.$axios.get('http://localhost:8080/questionnaire/changeStatus', {
+          params: {
+            id: item.id
+          }
+        }).then(res=>{
+          this.url=res.data.url
+          //console.log(res.data.url)
+        })
+        this.questionnaires[index].status=1
+        this.urlDialogControl=0
+        this.urlDialogVisible=true
+      }
+    },
+    viewUrl(item){
+      if(item.status===1){
+        this.urlDialogControl=1
+      }
+      else{
+        this.urlDialogControl=2
+      }
+      this.urlDialogVisible=true
     }
-  }
+  },
+  created() {
+    // 页面创建时读出账号的缓存信息
+    if (sessionStorage.getItem("store") ) {
+      this.$store.replaceState(Object.assign({},
+        this.$store.state,JSON.parse(sessionStorage.getItem("store"))))
+    }
+  },
+  mounted() {
+    this.userName=this.$store.state.name
+    // console.log('存储的为'+this.$store.state.id)
+    // console.log('存储的为'+this.$store.state.name)
+    this.$axios.get('http://localhost:8080/questionnaire/getQuestionnaireList', {
+      params: {
+        id: this.$store.state.id
+      }
+    }).then(res => {
+      this.questionnaires=res.data
+    })
+  },
 }
 </script>
 <style scoped>
@@ -330,7 +431,7 @@ export default {
   width: 100%;
   background-color: white;
   box-shadow: 0px 0px 5px #888888;
-  z-index: 9999;
+  z-index: 999;
 }
 
 .logo {
@@ -619,5 +720,8 @@ text-decoration: none;
 .createBox h1,.createBox .el-input{
   display: block;
   margin-bottom: 50px;
+}
+.el-message-box__wrapper{
+  z-index: 9999;
 }
 </style>
