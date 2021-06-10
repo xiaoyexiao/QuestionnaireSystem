@@ -12,16 +12,16 @@
   <div class="w">
     <div class="content" ref="container">
       <div class="content-header">
-        <span>创建新问卷</span>
+        <span>{{ headTitle }}</span>
       </div>
       <div class="content-main">
         <div class="main-header">
-          <el-form ref="form" :model="form" label-width="80px">
+          <el-form ref="form" :model="questionnaire" label-width="80px">
             <el-form-item label="标题" class="l1">
-              <el-input v-model="form.title"></el-input>
+              <el-input v-model="questionnaire.title"></el-input>
             </el-form-item>
             <el-form-item label="问卷描述" class="l2">
-              <el-input type="textarea" :rows="2" placeholder="请输入问卷描述内容" v-model="form.description">
+              <el-input type="textarea" :rows="2" placeholder="请输入问卷描述内容" v-model="questionnaire.description">
               </el-input>
             </el-form-item>
           </el-form>
@@ -169,14 +169,15 @@ export default {
   name: "QuestionnaireEdit",
   data(){
     return{
+      questionnaire: {
+        title: '',
+        description: ''
+      },
+      headTitle:'',
       backgroundStyle:{
         width: '100%',
         backgroundColor: 'rgba(234,242,247, 0.95)',
         height: '200px'
-      },
-      form: {
-        title: 'title',
-        description: '',
       },
       count: 0,
       List:[
@@ -227,7 +228,8 @@ export default {
           style:3,
           question:'题目1',
           must:false, //必选
-          answer: ''
+          answer: '',
+          options:[{}]
         }
       ]
     }
@@ -357,7 +359,7 @@ export default {
           newItem={
             editShow: false,
             style:1,
-            question:'题目',
+            question:'默认题目',
             must: false,
             options:[
               {
@@ -377,7 +379,7 @@ export default {
           newItem={
             editShow: false,
             style:2,
-            question:'题目',
+            question:'默认题目',
             must: false,
             options:[
               {
@@ -397,7 +399,7 @@ export default {
           newItem={
             editShow: false,
             style:3,
-            question:'题目',
+            question:'默认题目',
             must:false,
             answer: ''
           }
@@ -415,6 +417,53 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
+        let submitOptions=[],submitQuestionnaire,i=0,founderId=this.$store.state.id,questionnaireId=this.$store.state.questionnaireId
+        submitQuestionnaire={
+          title: this.questionnaire.title,
+          question_number: this.List.length,
+          founder_id: founderId,
+          description: this.questionnaire.description
+        }
+        this.List.forEach(function (item,index,array){
+          if(item.style!==3){
+            for(let k=0;k<item.options.length;k++){
+              let obj={
+                questionnaire_id: questionnaireId,
+                question :item.question,
+                style:item.style,
+                question_number:index+1,
+                required: item.must===true?1:0,
+                text: item.options[k].value
+              }
+              submitOptions[i++]=obj
+            }
+          }
+          else{
+            let obj={
+              questionnaire_id: questionnaireId,
+              question :item.question,
+              style:item.style,
+              question_number:index+1,
+              required: item.must===true?1:0
+            }
+            submitOptions[i++]=obj
+          }
+        })
+        if(window.location.href.indexOf('questionnaireCreate')!=-1){
+          // 创建
+        }
+        else{
+          // 编辑问卷id不变保存在state了
+          submitQuestionnaire['id']=questionnaireId
+          console.log(JSON.stringify(submitQuestionnaire))
+          this.$axios.get('http://localhost:8080/questionnaire/createOrEditQuestionnaire', {
+            params: {
+              jsonString: JSON.stringify(submitQuestionnaire),
+              edit: 1
+            }
+          }).then(res => {
+          })
+        }
         this.$message({
           type: 'success',
           message: '保存成功!'
@@ -423,18 +472,86 @@ export default {
       });
     }
   },
+  created() {
+    if (sessionStorage.getItem("store") ) {
+      this.$store.replaceState(Object.assign({},
+        this.$store.state,JSON.parse(sessionStorage.getItem("store"))))
+    }
+  },
   mounted() {
-    this.form.title=this.$route.params.title
+    if(window.location.href.indexOf('questionnaireCreate')!=-1){
+      // 进入的是创建问卷的页面
+      this.headTitle='创建新问卷'
+      this.questionnaire.title=this.$route.params.title
+    }
+    else{
+      // 进入的是编辑问卷的页面
+      this.headTitle='编辑问卷'
+      this.$axios.get('http://localhost:8080/q-option/getQuestionnaireData', {
+        params: {
+          id: this.$store.state.questionnaireId
+        }
+      }).then(res => {
+        this.questionnaire=res.data.questionnaire
+        let index=1,t=0,n=0,list=[],obj={'editShow':false},options=[]
+        for(let i=0;i<res.data.options.length;i++){
+          let item=res.data.options[i]
+          if(item.questionNumber===index){
+            if(t===0){
+              // 第一道题的第一个选项
+              obj['style']=item.style
+              obj['question']=item.question
+              obj['must']=item.required === 1
+              options[n++]={
+                value:item.text,
+                label: i.toString()
+              }
+              obj['options']=options
+              if(item.style===1){
+                obj['value']=''
+              }
+              else if(item.style===2){
+                obj['checkList']=[]
+              }
+              else{
+                obj['answer']=''
+              }
+            }
+            else{
+              // 第2++个选项
+              if(item.style===3){
+                continue
+              }
+              else{
+                options[n++]={
+                  value:item.text,
+                  label: i.toString()
+                }
+              }
+            }
+          }
+          else{//添加进数组
+            let cloneObj = JSON.parse(JSON.stringify(obj));
+            options=[]
+            obj={'editShow':false}
+            n=0
+            list[index-1]=cloneObj
+            index++
+            i--
+          }
+        }
+        let cloneObj = JSON.parse(JSON.stringify(obj))
+        list[index-1]=cloneObj
+        this.List=list
+      })
+    }
     this.count=10 // label递增，方便数组更新取数据
   },
   updated() {
-    // console.log('container.clientHeight'+this.$refs.container.clientHeight)
-    // console.log('screen.height:'+screen.height)
     if(this.$refs.container.clientHeight<(screen.height-180))
       this.backgroundStyle.height=`${screen.height-this.$refs.container.clientHeight-180}px`
     else
       this.backgroundStyle.height='0'
-    console.log(this.backgroundStyle.height)
   }
 }
 </script>
@@ -493,7 +610,7 @@ export default {
   text-align: left;
 }
 .main-header{
-  padding: 20px 200px 10px 0;
+  padding: 20px 100px 10px 100px;
   border-bottom: 1px solid #e2e2e2;
 }
 .l1 >>>.el-form-item__label{

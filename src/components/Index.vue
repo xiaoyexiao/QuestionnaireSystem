@@ -137,7 +137,7 @@
                     </a>
                     <ul>
                       <li><a href="#">设计向导</a></li>
-                      <li><a href="#" @click="editDialogVisible = true">编辑问卷</a></li>
+                      <li><a href="#" @click="editQuestionnaire(item)">编辑问卷</a></li>
                       <li><a href="#">问卷设置</a></li>
                       <li><a href="#" @click="questionnaireCheck">问卷外观</a></li>
                       <li><a href="#">红包&奖品</a></li>
@@ -309,7 +309,7 @@ export default {
       this.$router.push('/questionnaireCheck')
     },
     toCreate(){
-      this.$router.push({name:"QuestionnaireEdit",params:{title:this.createTitle}})
+      this.$router.push({name:"QuestionnaireCreate",params:{title:this.createTitle}})
     },
     deleteQuestionnaire(item){
       let id=item.id
@@ -365,7 +365,6 @@ export default {
           }
         }).then(res=>{
           this.url=res.data.url
-          //console.log(res.data.url)
         })
         this.questionnaires[index].status=1
         this.urlDialogControl=0
@@ -380,6 +379,11 @@ export default {
         this.urlDialogControl=2
       }
       this.urlDialogVisible=true
+    },
+    editQuestionnaire(item){
+      this.$store.commit("setQuestionnaireId",item.id)
+      sessionStorage.setItem("store",JSON.stringify(this.$store.state))
+      this.editDialogVisible=true
     }
   },
   created() {

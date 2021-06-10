@@ -4,7 +4,8 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     id:'',
-    name:''
+    name:'',
+    questionnaireId: 0
   },
   mutations: {
     offId(state){ // 退出登录
@@ -15,7 +16,10 @@ export default new Vuex.Store({
     },
     setName(state,name){
       state.name=name
-    }
+    },
+    setQuestionnaireId(state,questionnaireId){
+      state.questionnaireId=questionnaireId
+    },
   },
   getters: {
   },

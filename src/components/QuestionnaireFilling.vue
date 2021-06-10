@@ -157,8 +157,8 @@ export default {
   },
   created() {
     this.$nextTick(function (){
-      console.log('container.clientHeight'+this.$refs.container.clientHeight)
-      console.log('screen.height:'+screen.height)
+      // console.log('container.clientHeight'+this.$refs.container.clientHeight)
+      // console.log('screen.height:'+screen.height)
       if(this.$refs.container.clientHeight<(screen.height-300))
         this.backgroundStyle.height=`${screen.height-this.$refs.container.clientHeight-300}px`
       else
@@ -167,8 +167,8 @@ export default {
     })
   },
   updated() {
-    console.log('container.clientHeight'+this.$refs.container.clientHeight)
-    console.log('screen.height:'+screen.height)
+    // console.log('container.clientHeight'+this.$refs.container.clientHeight)
+    // console.log('screen.height:'+screen.height)
     if(this.$refs.container.clientHeight<(screen.height-300))
       this.backgroundStyle.height=`${screen.height-this.$refs.container.clientHeight-300}px`
     else

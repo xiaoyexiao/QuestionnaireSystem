@@ -42,11 +42,20 @@ export default {
   methods:{
     nextPage(){
       if(this.method===1){
+        //删除所有答卷
 
       }
       else{
-
+        // 复制一份新问卷并编辑
+        this.$axios.get('http://localhost:8080/questionnaire/copyQuestionnaire', {
+          params: {
+            id: this.$store.state.id
+          }
+        }).then(res=>{
+          this.$store.commit("setQuestionnaireId",res.data)
+        })
       }
+      this.$router.push({name:"QuestionnaireEdit",params:{ method:this.method}})
     }
   }
 }
