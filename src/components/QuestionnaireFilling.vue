@@ -2,7 +2,7 @@
 <div class="container">
   <div class="header w"></div>
   <div class="w">
-    <div class="content">
+    <div class="content" ref="container">
       <div class="content-header">
         <h4 class="title">程序设计与算法综合实习</h4>
         <span class="description">这里是描述内容...</span>
@@ -41,6 +41,7 @@
     <el-progress type="circle" :percentage="13"></el-progress>
     <span>进度条</span>
   </div>
+  <div class="background" :style="backgroundStyle"></div>
   <div class="footer"></div>
 </div>
 </template>
@@ -50,6 +51,10 @@ export default {
   name: "QuestionnaireFilling",
   data(){
     return{
+      backgroundStyle:{
+        width: '100%',
+        height: '50px'
+      },
       List:[
         {
           style:1,
@@ -72,49 +77,65 @@ export default {
           value:'1'
         },
         {
-          style:2,
-          question:'题目2',
+          style:1,
+          question:'题目1',
           must:true, //必选
           options:[
             {
-              value:'选项4',
+              value:'选项1',
               label:'1'
             },
             {
-              value:'选项5',
+              value:'选项2',
               label:'2'
             },
             {
-              value:'选项6',
+              value:'选项3',
               label:'3'
             }
           ],
-          checkList: []
+          value:'1'
         },
         {
-          style:3,
+          style:1,
           question:'题目1',
-          must:false, //必选
-          answer: ''
+          must:true, //必选
+          options:[
+            {
+              value:'选项1',
+              label:'1'
+            },
+            {
+              value:'选项2',
+              label:'2'
+            },
+            {
+              value:'选项3',
+              label:'3'
+            }
+          ],
+          value:'1'
         },
         {
-          style:3,
+          style:1,
           question:'题目1',
-          must:false, //必选
-          answer: ''
-        },
-        {
-          style:3,
-          question:'题目1',
-          must:false, //必选
-          answer: ''
-        },
-        {
-          style:3,
-          question:'题目1',
-          must:false, //必选
-          answer: ''
-        },
+          must:true, //必选
+          options:[
+            {
+              value:'选项1',
+              label:'1'
+            },
+            {
+              value:'选项2',
+              label:'2'
+            },
+            {
+              value:'选项3',
+              label:'3'
+            }
+          ],
+          value:'1'
+        }
       ]
     }
   },
@@ -135,7 +156,24 @@ export default {
     }
   },
   created() {
-    console.log(window.location.href)
+    this.$nextTick(function (){
+      console.log('container.clientHeight'+this.$refs.container.clientHeight)
+      console.log('screen.height:'+screen.height)
+      if(this.$refs.container.clientHeight<(screen.height-300))
+        this.backgroundStyle.height=`${screen.height-this.$refs.container.clientHeight-300}px`
+      else
+        this.backgroundStyle.height='0'
+      console.log(this.backgroundStyle.height)
+    })
+  },
+  updated() {
+    console.log('container.clientHeight'+this.$refs.container.clientHeight)
+    console.log('screen.height:'+screen.height)
+    if(this.$refs.container.clientHeight<(screen.height-300))
+      this.backgroundStyle.height=`${screen.height-this.$refs.container.clientHeight-300}px`
+    else
+      this.backgroundStyle.height='0'
+    console.log(this.backgroundStyle.height)
   }
 }
 </script>
@@ -233,6 +271,6 @@ export default {
   right: 55px;
 }
 .footer{
-  height: 50px;
+  height: 100px;
 }
 </style>

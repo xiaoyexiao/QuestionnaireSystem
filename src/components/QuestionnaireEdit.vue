@@ -10,7 +10,7 @@
   </div>
   <div class="header w"></div>
   <div class="w">
-    <div class="content">
+    <div class="content" ref="container">
       <div class="content-header">
         <span>创建新问卷</span>
       </div>
@@ -159,7 +159,8 @@
       </div>
     </div>
   </div>
-  <div class="footer"></div>
+  <div class="background" :style="backgroundStyle"></div>
+  <div style="background-color: rgba(234,242,247, 0.95);height: 100px"></div>
 </div>
 </template>
 
@@ -168,6 +169,11 @@ export default {
   name: "QuestionnaireEdit",
   data(){
     return{
+      backgroundStyle:{
+        width: '100%',
+        backgroundColor: 'rgba(234,242,247, 0.95)',
+        height: '200px'
+      },
       form: {
         title: 'title',
         description: '',
@@ -420,6 +426,15 @@ export default {
   mounted() {
     this.form.title=this.$route.params.title
     this.count=10 // label递增，方便数组更新取数据
+  },
+  updated() {
+    // console.log('container.clientHeight'+this.$refs.container.clientHeight)
+    // console.log('screen.height:'+screen.height)
+    if(this.$refs.container.clientHeight<(screen.height-180))
+      this.backgroundStyle.height=`${screen.height-this.$refs.container.clientHeight-180}px`
+    else
+      this.backgroundStyle.height='0'
+    console.log(this.backgroundStyle.height)
   }
 }
 </script>
@@ -476,9 +491,6 @@ export default {
 .content-main{
   font-size: 16px;
   text-align: left;
-}
-.footer{
-  height: 150px;
 }
 .main-header{
   padding: 20px 200px 10px 0;

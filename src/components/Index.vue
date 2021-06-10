@@ -90,7 +90,7 @@
         </a></li>
       </ul>
     </div>
-    <div class="w main">
+    <div class="w main" ref="container">
       <div class="main-block">
         <div class="main-block-header">
           <h2 class="fl">问卷列表</h2>
@@ -193,6 +193,7 @@
       </div>
       <div style="clear:both"></div>
     </div>
+    <div class="background" :style="backgroundStyle"></div>
   </div>
 </template>
 <script>
@@ -205,6 +206,11 @@ export default {
   },
   data() {
     return {
+      backgroundStyle:{
+        width: '100%',
+        backgroundColor: '#f5f5f5',
+        height: '100px'
+      },
       userName: '',
       exitDialogVisible: false,
       editDialogVisible: false,
@@ -232,6 +238,11 @@ export default {
         },
       ],
       questionnaires:[]
+    }
+  },
+  watch:{
+    height(old,n){
+      console.log(old+'  '+n)
     }
   },
   computed: {
@@ -308,8 +319,6 @@ export default {
         type: 'warning'
       }).then(() => {
         for (let k = 0; k < this.questionnaires.length; k++){
-          console.log(this.questionnaires[k])
-          console.log(k)
           if(this.questionnaires[k]===item){
             this.questionnaires.splice(k,1)
           }
@@ -324,12 +333,11 @@ export default {
           }
         })
       }).catch(() => {});
+      console.log(this.$refs.container.clientHeight)
     },
     publishOrNot(item){
       let index
       for (let k = 0; k < this.questionnaires.length; k++){
-        console.log(this.questionnaires[k])
-        console.log(k)
         if(this.questionnaires[k]===item){
           index=k
           break
@@ -393,6 +401,15 @@ export default {
       this.questionnaires=res.data
     })
   },
+  updated() {
+    // console.log('container.clientHeight'+this.$refs.container.clientHeight)
+    // console.log('screen.height:'+screen.height)
+    if(this.$refs.container.clientHeight<(screen.height-145))
+      this.backgroundStyle.height=`${screen.height-this.$refs.container.clientHeight-145}px`
+    else
+      this.backgroundStyle.height='0'
+    console.log(this.backgroundStyle.height)
+  }
 }
 </script>
 <style scoped>
