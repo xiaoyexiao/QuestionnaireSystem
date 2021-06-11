@@ -1,5 +1,5 @@
 <template>
-<div class="container">
+<div class="container" v-loading="loading">
   <div class="head">
     <div class="w">
       <div class="submitButton" @click="onSubmit">
@@ -170,6 +170,7 @@ export default {
   name: "QuestionnaireEdit",
   data(){
     return{
+      loading: false,
       questionnaire: {
         title: '',
         description: ''
@@ -211,15 +212,15 @@ export default {
           options:[
             {
               value:'选项4',
-              label:'1'
+              label:'4'
             },
             {
               value:'选项5',
-              label:'2'
+              label:'5'
             },
             {
               value:'选项6',
-              label:'3'
+              label:'6'
             }
           ],
           answer: []
@@ -418,6 +419,13 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
+        if(this.List.length===0){
+          this.$message({
+            message: '问卷必须有至少一道题！',
+            type: 'warning'
+          });
+          return
+        }
         let submitOptions={},submitQuestionnaire,i=0,founderId=this.$store.state.id,questionnaireId=this.$store.state.questionnaireId
         submitQuestionnaire={
           title: this.questionnaire.title,
@@ -491,16 +499,19 @@ export default {
       this.$store.replaceState(Object.assign({},
         this.$store.state,JSON.parse(sessionStorage.getItem("store"))))
     }
+    this.loading = true
+    setTimeout(() => {
+      this.loading = false
+    }, 800)
   },
   mounted() {
-    if(window.location.href.indexOf('questionnaireCreate')!=-1){
+    if(window.location.href.indexOf('questionnaireCreate')!==-1){
       // 进入的是创建问卷的页面
       this.headTitle='创建新问卷'
       this.questionnaire.title=this.$route.params.title
     }
     else{
-      // 进入的是编辑问卷的页面
-      // console.log(this.$store.state.questionnaireId)
+      console.log('id'+this.$store.state.questionnaireId)
       this.headTitle='编辑问卷'
       this.$axios.get('http://localhost:8080/q-option/getQuestionnaireData', {
         params: {

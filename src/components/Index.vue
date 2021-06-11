@@ -122,8 +122,8 @@
               <span class="item-top-title fl">{{ item.title }}</span>
               <span class="item-top-date fr">{{ item.createDate }}</span>
               <span class="item-top-number fr">答卷:{{ item.answersheetNumber }}</span>
-              <span class="item-top-status fr">{{ item.status===0?'未发布':'已发布' }}</span>
-              <i class="point fr"></i>
+              <span class="item-top-status fr" :class="[{'BlueColor':item.status===1},{'BlackColor':item.status===0}]">{{ item.status===0?'未发布':'已发布' }}</span>
+              <i class="point fr" :class="[{'BlueBg':item.status===1},{'GreyBg':item.status===0}]"></i>
               <span class="item-top-id fr">ID:{{ item.id }}</span>
             </div>
             <div class="item-bottom">
@@ -306,6 +306,7 @@ export default {
     },
     toCreate(){
       this.$store.commit("setQuestionnaireId",0)
+      sessionStorage.setItem("store",JSON.stringify(this.$store.state))
       this.$router.push({name:"QuestionnaireCreate",params:{title:this.createTitle}})
     },
     deleteQuestionnaire(item){
@@ -371,6 +372,13 @@ export default {
     viewUrl(item){
       if(item.status===1){
         this.urlDialogControl=1
+        this.$axios.get('http://localhost:8080/questionnaire/getUrl', {
+          params: {
+            id: item.id
+          }
+        }).then(res => {
+          this.url=res.data
+        })
       }
       else{
         this.urlDialogControl=2
@@ -378,9 +386,27 @@ export default {
       this.urlDialogVisible=true
     },
     editQuestionnaire(item){
-      this.$store.commit("setQuestionnaireId",item.id)
-      sessionStorage.setItem("store",JSON.stringify(this.$store.state))
-      this.editDialogVisible=true
+      let t=1
+      this.$axios.get('http://localhost:8080/questionnaire/getStatus', {
+        params: {
+          id: item.id
+        }
+      }).then(res => {
+        if(res.data===1){
+          this.$message({
+            message: '请先停止发布问卷再编辑！',
+            type: 'warning'
+          });
+          t=0
+        }
+      })
+      setTimeout(() => {
+        if(t===0)
+          return
+        this.$store.commit("setQuestionnaireId",item.id)
+        sessionStorage.setItem("store",JSON.stringify(this.$store.state))
+        this.editDialogVisible=true
+      }, 100)
     }
   },
   created() {
@@ -633,8 +659,19 @@ export default {
   width: 6px;
   height: 6px;
   margin-right: 4px;
-  background-color: #bfbfbf;
   border-radius: 4px;
+}
+.BlueBg{
+  background-color: #0095ff;
+}
+.GreyBg{
+  background-color: #bfbfbf;
+}
+.BlackColor{
+  color: black;
+}
+.BlueColor{
+  color: #0095ff;
 }
 .item-bottom{
   margin: 13px 24px 0;

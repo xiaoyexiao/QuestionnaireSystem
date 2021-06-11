@@ -43,7 +43,18 @@ export default {
     nextPage(){
       if(this.method===1){
         //删除所有答卷
-
+        this.$confirm('数据删除后将不能再恢复，请谨慎操作，编辑过程中问卷会暂停运行，是否确认继续？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.$axios.get('http://localhost:8080/answersheet/deleteAnswerSheet', {
+            params: {
+              id: this.$store.state.questionnaireId
+            }
+          })
+          this.$router.push('/questionnaireEdit')
+        }).catch(() => {});
       }
       else{
         // 复制一份新问卷并编辑
@@ -53,10 +64,12 @@ export default {
           }
         }).then(res=>{
           // 把新的问卷id存入store
+          console.log(res.data)
           this.$store.commit("setQuestionnaireId",res.data)
+          sessionStorage.setItem("store",JSON.stringify(this.$store.state))
+          this.$router.push('/questionnaireEdit')
         })
       }
-      this.$router.push('/questionnaireEdit')
     }
   }
 }

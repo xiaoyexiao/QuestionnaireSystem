@@ -74,11 +74,20 @@ export default {
       else{
         let list= {},i
         for(i=0;i<this.List.length;i++){
-          list[i]={
-            questionNumber: i+1,
-            answer: this.List[i].answer
+          if(this.List[i].style!==2){
+            list[i]={
+              questionNumber: i+1,
+              answer: this.List[i].answer
+            }
+          }
+          else{
+            list[i]={
+              questionNumber: i+1,
+              answer: this.List[i].answer.toString()
+            }
           }
         }
+        console.log(list)
         this.$axios.get('http://localhost:8080/answersheet/submitAnswerSheet', {
         // 提交问卷
           params: {
