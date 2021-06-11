@@ -7,6 +7,7 @@ import QuestionnaireFilling from "../components/QuestionnaireFilling";
 import QuestionnaireEdit from "../components/QuestionnaireEdit";
 import QuestionnaireCheck from "../components/QuestionnaireCheck";
 import QuestionnaireCreate from "../components/QuestionnaireCreate";
+import NotFound from "../components/NotFound";
 
 Vue.use(Router);
 
@@ -52,5 +53,9 @@ export default new Router({
       name: 'QuestionnaireCreate',
       component: QuestionnaireCreate,
     },
+    {
+      path: '*',
+      component: NotFound
+    }
   ],
 });

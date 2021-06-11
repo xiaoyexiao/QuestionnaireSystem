@@ -33,7 +33,7 @@
                 <div class="question-content">
                   <span v-show="item.must" style="color: red">*</span>
                   <h4>{{index+1}}. {{item.question}}</h4>
-                  <el-radio v-for="option in item.options" :key="option.value" v-model="item.value" :label="option.label">{{ option.value }}</el-radio>
+                  <el-radio v-for="option in item.options" :key="option.value" v-model="item.answer" :label="option.label">{{ option.value }}</el-radio>
                   <div class="spanRight">
                     <div class="stuff">
                       <a class="edit-selector" @click="showControl(index)">编辑</a>
@@ -76,7 +76,7 @@
                   <span v-show="item.must" style="color: red">*</span>
                   <h4>{{index+1}}. {{item.question}}</h4>
                   <span>[多选题]</span>
-                  <el-checkbox-group v-model="item.checkList">
+                  <el-checkbox-group v-model="item.answer">
                     <el-checkbox v-for="option in item.options" :key="option.value" :label="option.label"></el-checkbox>
                   </el-checkbox-group>
                   <div class="spanRight">
@@ -165,6 +165,7 @@
 </template>
 
 <script>
+import util from '../assets/js/DataManipulation'
 export default {
   name: "QuestionnaireEdit",
   data(){
@@ -200,7 +201,7 @@ export default {
               label:'3'
             }
           ],
-          value:'1'
+          answer:'1'
         },
         {
           editShow: false,
@@ -221,12 +222,12 @@ export default {
               label:'3'
             }
           ],
-          checkList: []
+          answer: []
         },
         {
           editShow: false,
           style:3,
-          question:'题目1',
+          question:'题目3',
           must:false, //必选
           answer: '',
           options:[{}]
@@ -417,7 +418,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        let submitOptions=[],submitQuestionnaire,i=0,founderId=this.$store.state.id,questionnaireId=this.$store.state.questionnaireId
+        let submitOptions={},submitQuestionnaire,i=0,founderId=this.$store.state.id,questionnaireId=this.$store.state.questionnaireId
         submitQuestionnaire={
           title: this.questionnaire.title,
           question_number: this.List.length,
@@ -444,26 +445,39 @@ export default {
               question :item.question,
               style:item.style,
               question_number:index+1,
-              required: item.must===true?1:0
+              required: item.must===true?1:0,
+              text: ''
             }
             submitOptions[i++]=obj
           }
         })
-        if(window.location.href.indexOf('questionnaireCreate')!=-1){
+        if(window.location.href.indexOf('questionnaireCreate')!==-1){
           // 创建
+          this.$axios.get('http://localhost:8080/questionnaire/createOrEditQuestionnaire', {
+            params: {
+              questionnaireJsonString: JSON.stringify(submitQuestionnaire),
+              OptionsJsonString: JSON.stringify(submitOptions),
+              edit: 0,
+              optionsNum:i
+            }
+          }).then(res => {
+            console.log(res.data)
+          })
         }
         else{
           // 编辑问卷id不变保存在state了
           submitQuestionnaire['id']=questionnaireId
-          console.log(JSON.stringify(submitQuestionnaire))
           this.$axios.get('http://localhost:8080/questionnaire/createOrEditQuestionnaire', {
             params: {
-              jsonString: JSON.stringify(submitQuestionnaire),
-              edit: 1
+              questionnaireJsonString: JSON.stringify(submitQuestionnaire),
+              OptionsJsonString: JSON.stringify(submitOptions),
+              edit: 1,
+              optionsNum:i
             }
           }).then(res => {
           })
         }
+        this.$router.push('/main')
         this.$message({
           type: 'success',
           message: '保存成功!'
@@ -486,6 +500,7 @@ export default {
     }
     else{
       // 进入的是编辑问卷的页面
+      // console.log(this.$store.state.questionnaireId)
       this.headTitle='编辑问卷'
       this.$axios.get('http://localhost:8080/q-option/getQuestionnaireData', {
         params: {
@@ -493,56 +508,7 @@ export default {
         }
       }).then(res => {
         this.questionnaire=res.data.questionnaire
-        let index=1,t=0,n=0,list=[],obj={'editShow':false},options=[]
-        for(let i=0;i<res.data.options.length;i++){
-          let item=res.data.options[i]
-          if(item.questionNumber===index){
-            if(t===0){
-              // 第一道题的第一个选项
-              obj['style']=item.style
-              obj['question']=item.question
-              obj['must']=item.required === 1
-              options[n++]={
-                value:item.text,
-                label: i.toString()
-              }
-              obj['options']=options
-              if(item.style===1){
-                obj['value']=''
-              }
-              else if(item.style===2){
-                obj['checkList']=[]
-              }
-              else{
-                obj['answer']=''
-              }
-            }
-            else{
-              // 第2++个选项
-              if(item.style===3){
-                continue
-              }
-              else{
-                options[n++]={
-                  value:item.text,
-                  label: i.toString()
-                }
-              }
-            }
-          }
-          else{//添加进数组
-            let cloneObj = JSON.parse(JSON.stringify(obj));
-            options=[]
-            obj={'editShow':false}
-            n=0
-            list[index-1]=cloneObj
-            index++
-            i--
-          }
-        }
-        let cloneObj = JSON.parse(JSON.stringify(obj))
-        list[index-1]=cloneObj
-        this.List=list
+        this.List=util.questionnaireToList(res.data)
       })
     }
     this.count=10 // label递增，方便数组更新取数据

@@ -4,8 +4,8 @@
   <div class="w">
     <div class="content" ref="container">
       <div class="content-header">
-        <h4 class="title">程序设计与算法综合实习</h4>
-        <span class="description">这里是描述内容...</span>
+        <h4 class="title">{{questionnaire.title}}</h4>
+        <span class="description">{{questionnaire .description}}</span>
       </div>
       <div class="content-main">
         <ul>
@@ -13,13 +13,13 @@
             <div v-if="item.style===1">
               <span v-show="item.must" style="color: red">*</span>
               <h4>{{index+1}}. {{item.question}}</h4>
-              <el-radio v-for="option in item.options" :key="option.value" v-model="item.value" :label="option.label">{{ option.value }}</el-radio>
+              <el-radio v-for="option in item.options" :key="option.value" v-model="item.answer" :label="option.label">{{ option.value }}</el-radio>
             </div>
             <div v-else-if="item.style===2">
               <span v-show="item.must" style="color: red">*</span>
               <h4>{{index+1}}. {{item.question}}</h4>
               <span>[多选题]</span>
-              <el-checkbox-group v-model="item.checkList">
+              <el-checkbox-group v-model="item.answer">
                 <el-checkbox v-for="option in item.options" :key="option" :label="option.value"></el-checkbox>
               </el-checkbox-group>
             </div>
@@ -47,6 +47,7 @@
 </template>
 
 <script>
+import util from '../assets/js/DataManipulation'
 export default {
   name: "QuestionnaireFilling",
   data(){
@@ -55,125 +56,82 @@ export default {
         width: '100%',
         height: '50px'
       },
-      List:[
-        {
-          style:1,
-          question:'题目1',
-          must:true, //必选
-          options:[
-            {
-              value:'选项1',
-              label:'1'
-            },
-            {
-              value:'选项2',
-              label:'2'
-            },
-            {
-              value:'选项3',
-              label:'3'
-            }
-          ],
-          value:'1'
-        },
-        {
-          style:1,
-          question:'题目1',
-          must:true, //必选
-          options:[
-            {
-              value:'选项1',
-              label:'1'
-            },
-            {
-              value:'选项2',
-              label:'2'
-            },
-            {
-              value:'选项3',
-              label:'3'
-            }
-          ],
-          value:'1'
-        },
-        {
-          style:1,
-          question:'题目1',
-          must:true, //必选
-          options:[
-            {
-              value:'选项1',
-              label:'1'
-            },
-            {
-              value:'选项2',
-              label:'2'
-            },
-            {
-              value:'选项3',
-              label:'3'
-            }
-          ],
-          value:'1'
-        },
-        {
-          style:1,
-          question:'题目1',
-          must:true, //必选
-          options:[
-            {
-              value:'选项1',
-              label:'1'
-            },
-            {
-              value:'选项2',
-              label:'2'
-            },
-            {
-              value:'选项3',
-              label:'3'
-            }
-          ],
-          value:'1'
-        }
-      ]
+      questionnaire: {
+        title:'',
+        description:''
+      },
+      List: []
     }
   },
   methods:{
     onSubmit(){
-      if(window.location.href.indexOf('questionnaireCheck')!=-1){
+      if(window.location.href.indexOf('questionnaireCheck')!==-1){
         this.$message({
           message: '提示：问卷预览页面，只能预览，不能提交！',
           type: 'warning'
         });
       }
       else{
-        this.$message({
-          message: '恭喜你，这是一条成功消息',
-          type: 'success'
-        });
+        let list= {},i
+        for(i=0;i<this.List.length;i++){
+          list[i]={
+            questionNumber: i+1,
+            answer: this.List[i].answer
+          }
+        }
+        this.$axios.get('http://localhost:8080/answersheet/submitAnswerSheet', {
+        // 提交问卷
+          params: {
+            AnswerJsonObject: JSON.stringify(list),
+            id: this.$store.state.questionnaireId,
+            answerNum: i
+          }
+        }).then(()=>{
+          this.$router.push('/')
+          this.$message({
+            message: '问卷提交成功',
+            type: 'success'
+          });
+        })
       }
     }
   },
+  mounted() {
+    this.$axios.get('http://localhost:8080/questionnaire/getQuestionnaireIdByUrl', {
+      params: {
+        url: window.location.href
+      }
+    }).then(res1=>{
+      if(res1.data===-1){
+        // url错误
+        this.$router.push('/notFound')
+      }
+      else{
+        this.$store.commit("setQuestionnaireId",res1.data)
+        this.$axios.get('http://localhost:8080/q-option/getQuestionnaireData', {
+          params: {
+            id: res1.data
+          }
+        }).then(res2=>{
+          this.questionnaire=res2.data.questionnaire
+          this.List=util.questionnaireToList(res2.data)
+        })
+      }
+    })
+  },
   created() {
     this.$nextTick(function (){
-      // console.log('container.clientHeight'+this.$refs.container.clientHeight)
-      // console.log('screen.height:'+screen.height)
       if(this.$refs.container.clientHeight<(screen.height-300))
         this.backgroundStyle.height=`${screen.height-this.$refs.container.clientHeight-300}px`
       else
         this.backgroundStyle.height='0'
-      console.log(this.backgroundStyle.height)
     })
   },
   updated() {
-    // console.log('container.clientHeight'+this.$refs.container.clientHeight)
-    // console.log('screen.height:'+screen.height)
     if(this.$refs.container.clientHeight<(screen.height-300))
       this.backgroundStyle.height=`${screen.height-this.$refs.container.clientHeight-300}px`
     else
       this.backgroundStyle.height='0'
-    console.log(this.backgroundStyle.height)
   }
 }
 </script>

@@ -116,7 +116,7 @@
           </el-dropdown>
           </span>
         </div>
-        <ul>
+        <ul v-loading="loading">
           <li v-for="(item,index) in filteredQuestionnaires" class="main-li">
             <div class="item-top">
               <span class="item-top-title fl">{{ item.title }}</span>
@@ -211,6 +211,7 @@ export default {
         backgroundColor: '#f5f5f5',
         height: '100px'
       },
+      loading: false,
       userName: '',
       exitDialogVisible: false,
       editDialogVisible: false,
@@ -238,11 +239,6 @@ export default {
         },
       ],
       questionnaires:[]
-    }
-  },
-  watch:{
-    height(old,n){
-      console.log(old+'  '+n)
     }
   },
   computed: {
@@ -309,6 +305,7 @@ export default {
       this.$router.push('/questionnaireCheck')
     },
     toCreate(){
+      this.$store.commit("setQuestionnaireId",0)
       this.$router.push({name:"QuestionnaireCreate",params:{title:this.createTitle}})
     },
     deleteQuestionnaire(item){
@@ -397,22 +394,23 @@ export default {
     this.userName=this.$store.state.name
     // console.log('存储的为'+this.$store.state.id)
     // console.log('存储的为'+this.$store.state.name)
-    this.$axios.get('http://localhost:8080/questionnaire/getQuestionnaireList', {
-      params: {
-        id: this.$store.state.id
-      }
-    }).then(res => {
-      this.questionnaires=res.data
-    })
+    this.loading = true
+    setTimeout(() => {
+      this.$axios.get('http://localhost:8080/questionnaire/getQuestionnaireList', {
+        params: {
+          id: this.$store.state.id
+        }
+      }).then(res => {
+        this.questionnaires=res.data
+      })
+      this.loading = false
+    }, 800)
   },
   updated() {
-    // console.log('container.clientHeight'+this.$refs.container.clientHeight)
-    // console.log('screen.height:'+screen.height)
     if(this.$refs.container.clientHeight<(screen.height-145))
       this.backgroundStyle.height=`${screen.height-this.$refs.container.clientHeight-145}px`
     else
       this.backgroundStyle.height='0'
-    console.log(this.backgroundStyle.height)
   }
 }
 </script>

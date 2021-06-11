@@ -49,13 +49,14 @@ export default {
         // 复制一份新问卷并编辑
         this.$axios.get('http://localhost:8080/questionnaire/copyQuestionnaire', {
           params: {
-            id: this.$store.state.id
+            id: this.$store.state.questionnaireId
           }
         }).then(res=>{
+          // 把新的问卷id存入store
           this.$store.commit("setQuestionnaireId",res.data)
         })
       }
-      this.$router.push({name:"QuestionnaireEdit",params:{ method:this.method}})
+      this.$router.push('/questionnaireEdit')
     }
   }
 }
