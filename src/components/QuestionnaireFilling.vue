@@ -13,14 +13,14 @@
             <div v-if="item.style===1">
               <span v-show="item.must" style="color: red">*</span>
               <h4>{{index+1}}. {{item.question}}</h4>
-              <el-radio v-for="option in item.options" :key="option.value" v-model="item.answer" :label="option.label">{{ option.value }}</el-radio>
+              <el-radio v-for="(option,i) in item.options" :key="i" v-model="item.answer" :label="option.label">{{ option.value }}</el-radio>
             </div>
             <div v-else-if="item.style===2">
               <span v-show="item.must" style="color: red">*</span>
               <h4>{{index+1}}. {{item.question}}</h4>
               <span>[多选题]</span>
               <el-checkbox-group v-model="item.answer">
-                <el-checkbox v-for="option in item.options" :key="option" :label="option.value"></el-checkbox>
+                <el-checkbox v-for="(option,i) in item.options" :key="i" :label="option.value"></el-checkbox>
               </el-checkbox-group>
             </div>
             <div v-else>
@@ -56,6 +56,7 @@ export default {
         width: '100%',
         height: '50px'
       },
+      url: '',
       questionnaire: {
         title:'',
         description:''
@@ -66,14 +67,23 @@ export default {
   methods:{
     onSubmit(){
       if(window.location.href.indexOf('questionnaireCheck')!==-1){
+        // 如果是问卷外观页面不能提交
         this.$message({
           message: '提示：问卷预览页面，只能预览，不能提交！',
           type: 'warning'
         });
       }
       else{
+        console.log(this.List)
         let list= {},i
         for(i=0;i<this.List.length;i++){
+          if(this.List[i].must&&this.List[i].answer.toString()===''){
+            this.$message({
+              message: '有必做题未完成，请仔细查看后提交！',
+              type: 'warning'
+            });
+            return
+          }
           if(this.List[i].style!==2){
             list[i]={
               questionNumber: i+1,
@@ -87,7 +97,6 @@ export default {
             }
           }
         }
-        console.log(list)
         this.$axios.get('http://localhost:8080/answersheet/submitAnswerSheet', {
         // 提交问卷
           params: {
@@ -106,29 +115,48 @@ export default {
     }
   },
   mounted() {
-    this.$axios.get('http://localhost:8080/questionnaire/getQuestionnaireIdByUrl', {
-      params: {
-        url: window.location.href
-      }
-    }).then(res1=>{
-      if(res1.data===-1){
-        // url错误
-        this.$router.push('/notFound')
-      }
-      else{
-        this.$store.commit("setQuestionnaireId",res1.data)
-        this.$axios.get('http://localhost:8080/q-option/getQuestionnaireData', {
-          params: {
-            id: res1.data
-          }
-        }).then(res2=>{
-          this.questionnaire=res2.data.questionnaire
-          this.List=util.questionnaireToList(res2.data)
-        })
-      }
-    })
+    if(window.location.href.indexOf('questionnaireCheck')!==-1){
+      this.$axios.get('http://localhost:8080/q-option/getQuestionnaireData', {
+        params: {
+          id: this.$store.state.questionnaireId
+        }
+      }).then(res2=>{
+        this.questionnaire=res2.data.questionnaire
+        this.List=util.questionnaireToList(res2.data)
+      })
+    }
+    else{
+      this.$axios.get('http://localhost:8080/questionnaire/getQuestionnaireIdByUrl', {
+        params: {
+          url: window.location.href
+        }
+      }).then(res1=>{
+        if(res1.data===-1){
+          // url错误
+          this.$router.push('/notFound')
+        }
+        else if(res1.data===-2){
+          this.$router.push('/skipping')
+        }
+        else{
+          this.$store.commit("setQuestionnaireId",res1.data)
+          this.$axios.get('http://localhost:8080/q-option/getQuestionnaireData', {
+            params: {
+              id: res1.data
+            }
+          }).then(res2=>{
+            this.questionnaire=res2.data.questionnaire
+            this.List=util.questionnaireToList(res2.data)
+          })
+        }
+      })
+    }
   },
   created() {
+    if (sessionStorage.getItem("store") ) {
+      this.$store.replaceState(Object.assign({},
+        this.$store.state,JSON.parse(sessionStorage.getItem("store"))))
+    }
     this.$nextTick(function (){
       if(this.$refs.container.clientHeight<(screen.height-300))
         this.backgroundStyle.height=`${screen.height-this.$refs.container.clientHeight-300}px`

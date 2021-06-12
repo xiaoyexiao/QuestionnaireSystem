@@ -31,6 +31,23 @@
         </div>
       </div>
     </el-dialog>
+    <el-dialog :visible.sync="resultDialogVisible" width="80%" center class="resultDialog" top="50px">
+      <div class="resultDialogBox">
+        <div class="resultDialogBox-header">
+          <span style="display: block;margin-bottom:20px;text-align: center;font-size: 26px;font-weight: bold;">“{{this.resultDialogConfig.title}}”调查结果</span>
+        </div>
+        <div class="resultDialogBox-table">
+          <el-table style="width: 100%" :data="answers.slice((currentPage-1)*pageSize,currentPage*pageSize)" border stripe>
+            <el-table-column v-for="(item,index) in questions" :key="index" :prop="item" :label="item" :width="getWidth(item,index)"></el-table-column>
+          </el-table>
+        </div>
+        <div class="pagination">
+          <el-pagination @current-change="handleCurrentChange" :page-size="pageSize"
+                         layout="total,prev, pager, next, jumper" :total="answers.length" background >
+          </el-pagination>
+        </div>
+      </div>
+    </el-dialog>
     <div class="header">
       <div class="w">
         <div class="logo">
@@ -136,39 +153,29 @@
                       <i class="el-icon-caret-bottom"></i>
                     </a>
                     <ul>
-                      <li><a href="#">设计向导</a></li>
-                      <li><a href="#" @click="editQuestionnaire(item)">编辑问卷</a></li>
-                      <li><a href="#">问卷设置</a></li>
-                      <li><a href="#" @click="questionnaireCheck">问卷外观</a></li>
-                      <li><a href="#">红包&奖品</a></li>
+                      <li><a href="javascript:void(0)" @click="editQuestionnaire(item)">编辑问卷</a></li>
+                      <li><a href="javascript:void(0)" @click="questionnaireCheck(item)">问卷外观</a></li>
                     </ul>
                   </li>
                   <li>
-                    <a href="#">
+                    <a href="javascript:void(0)">
                       <i class="icon send-icon"></i>
                       发送问卷
                       <i class="el-icon-caret-bottom"></i>
                     </a>
                     <ul>
-                      <li><a href="#" @click="viewUrl(item)">链接&二维码</a></li>
-                      <li><a href="#">微信发送</a></li>
-                      <li><a href="#">样本服务</a></li>
-                      <li><a href="#">互填问卷</a></li>
-                      <li><a href="#">申请推荐</a></li>
+                      <li><a href="javascript:void(0)" @click="viewUrl(item)">问卷链接</a></li>
                     </ul>
                   </li>
                   <li>
-                    <a href="#">
+                    <a href="javascript:void(0)">
                       <i class="icon analysis-icon"></i>
                       分析&下载
                       <i class="el-icon-caret-bottom"></i>
                     </a>
                     <ul>
-                      <li><a href="#">统计&分析</a></li>
-                      <li><a href="#">查看下载答卷</a></li>
-                      <li><a href="#">来源分析</a></li>
-                      <li><a href="#">问卷外观</a></li>
-                      <li><a href="#">红包&奖品</a></li>
+                      <li><a href="javascript:void(0)" @click="showResult(item)">答卷结果</a></li>
+                      <li><a href="javascript:void(0)" @click="downloadResult(item)">导出答卷</a></li>
                     </ul>
                   </li>
                 </ul>
@@ -217,13 +224,18 @@ export default {
       editDialogVisible: false,
       createDialogVisible: false,
       urlDialogVisible: false,
-      urlDialogControl: 0, // 0是发布时候，1是查看链接，2是显示问卷未发布
+      resultDialogVisible:false,
+      urlDialogControl: 1, // 0是发布时候，1是查看链接，2是显示问卷未发布
       createTitle:'',
       sortBy: '时间倒序',
       search: '',
       searchText: '',
       status: 0,
       url:'',
+      // 每页条数
+      pageSize: 8,
+      // 当前页数
+      currentPage: 1,
       sortByList: [
         {
           name: '时间倒序',
@@ -238,7 +250,15 @@ export default {
           name: '答卷正序'
         },
       ],
-      questionnaires:[]
+      questionnaires:[],
+      resultDialogConfig:{
+        title: '',
+        questionNum: 0,
+        answerSheetNum: 0
+      },
+      questionsTest:['问题1','问题2'],
+      questions:[],
+      answers:[]
     }
   },
   computed: {
@@ -287,8 +307,13 @@ export default {
     }
   },
   methods: {
+    // 问卷结果翻页更新
+    handleCurrentChange (val) {
+      this.currentPage = val
+    },
     exit() {
       // 退出登录清空存储
+      this.$store.commit("offId")
       sessionStorage.removeItem("store")
       this.$router.push('/login')
     },
@@ -301,7 +326,9 @@ export default {
     searchQuestionnaire() { // 关键字搜索
       this.search=this.searchText
     },
-    questionnaireCheck(){ //问卷查看（只能查看不能提交）
+    questionnaireCheck(item){ //问卷查看（只能查看不能提交）
+      this.$store.commit("setQuestionnaireId",item.id)
+      sessionStorage.setItem("store",JSON.stringify(this.$store.state))
       this.$router.push('/questionnaireCheck')
     },
     toCreate(){
@@ -331,7 +358,6 @@ export default {
           }
         })
       }).catch(() => {});
-      console.log(this.$refs.container.clientHeight)
     },
     publishOrNot(item){
       let index
@@ -372,18 +398,20 @@ export default {
     viewUrl(item){
       if(item.status===1){
         this.urlDialogControl=1
-        this.$axios.get('http://localhost:8080/questionnaire/getUrl', {
+        this.$axios.get('http://localhost:8080/questionnaire/getQuestionnaire', {
           params: {
             id: item.id
           }
         }).then(res => {
-          this.url=res.data
+          this.url=res.data.url
         })
       }
       else{
         this.urlDialogControl=2
       }
-      this.urlDialogVisible=true
+      setTimeout(()=>{
+        this.urlDialogVisible=true
+      },300)
     },
     editQuestionnaire(item){
       let t=1
@@ -406,7 +434,111 @@ export default {
         this.$store.commit("setQuestionnaireId",item.id)
         sessionStorage.setItem("store",JSON.stringify(this.$store.state))
         this.editDialogVisible=true
-      }, 100)
+      }, 400)
+    },
+    // 根据问题数量返回表格列的宽度
+    getWidth(item,index){
+      if(index===0){
+        return 80
+      }
+      else{
+        if(this.questions.length>9){
+          return 150
+        }
+        else
+          return
+      }
+    },
+    showResult(item){
+      let t=1
+      this.$axios.get('http://localhost:8080/questionnaire/getQuestionnaire', {
+        params: {
+          id: item.id
+        }
+      }).then(res => {
+        if(res.data.answersheetNumber===0){
+          this.$message({
+            message: '答卷信息为空，赶紧叫人填写问卷吧！',
+            type: 'warning'
+          });
+          t=0
+        }
+      })
+      setTimeout(() => {
+        if(t===1){
+          this.$axios.get('http://localhost:8080/questionnaire/getResult', {
+            params: {
+              id: item.id
+            }
+          }).then(res => {
+            this.answers=[]
+            this.questions=[]
+            this.resultDialogConfig.title=res.data.title
+            let i,j
+            this.questions[0]='序号'
+            for(i=1;i<=res.data.questions.length;i++){
+              this.questions[i]=res.data.questions[i-1].question
+            }
+            this.questions[i]='提交时间'
+            for(i=0;i<res.data.answer.answersheetNumber;i++){ //2
+              let obj={}
+              obj['序号']=i+1
+              for(j=0;j<res.data.questions.length;j++){ //5
+                obj[res.data.questions[j].question]=res.data.answer.answers[i].answers[j].answer
+              }
+              obj['提交时间']=res.data.answer.answers[i].submitTime
+              this.answers[i]=JSON.parse(JSON.stringify(obj))
+              obj={}
+            }
+          })
+          this.resultDialogVisible=true
+        }
+      }, 300)
+    },
+    downloadResult(item){
+      this.$axios.get('http://localhost:8080/questionnaire/getResult', {
+        params: {
+          id: item.id
+        }
+      }).then(res => {
+        this.answers=[]
+        this.questions=[]
+        this.resultDialogConfig.title=res.data.title
+        let i,j
+        this.questions[0]='序号'
+        for(i=1;i<=res.data.questions.length;i++){
+          this.questions[i]=res.data.questions[i-1].question
+        }
+        this.questions[i]='提交时间'
+        for(i=0;i<res.data.answer.answersheetNumber;i++){ //2
+          let obj={}
+          obj['序号']=i+1
+          for(j=0;j<res.data.questions.length;j++){ //5
+            obj[res.data.questions[j].question]=res.data.answer.answers[i].answers[j].answer
+          }
+          obj['提交时间']=res.data.answer.answers[i].submitTime
+          this.answers[i]=JSON.parse(JSON.stringify(obj))
+          obj={}
+        }
+      })
+      setTimeout(()=>{
+        // console.log(JSON.stringify(this.questions))
+        let questions={},answers={}
+        for(let i=0;i<this.questions.length;i++){
+          questions[i]=JSON.parse(JSON.stringify(this.questions[i]))
+        }
+        for(let i=0;i<this.answers.length;i++){
+          answers[i]=JSON.parse(JSON.stringify(this.answers[i]))
+        }
+        // console.log(JSON.stringify(questions))
+        // console.log(JSON.stringify(answers))
+        this.$axios.get('http://localhost:8080/questionnaire/downloadResult', {
+          params: {
+            json1: JSON.stringify(questions),
+            json2: JSON.stringify(answers)
+          }
+        })
+      },400)
     }
   },
   created() {
@@ -415,11 +547,12 @@ export default {
       this.$store.replaceState(Object.assign({},
         this.$store.state,JSON.parse(sessionStorage.getItem("store"))))
     }
+    if(this.$store.state.id===''){
+      this.$router.push('/login')
+    }
   },
   mounted() {
     this.userName=this.$store.state.name
-    // console.log('存储的为'+this.$store.state.id)
-    // console.log('存储的为'+this.$store.state.name)
     this.loading = true
     setTimeout(() => {
       this.$axios.get('http://localhost:8080/questionnaire/getQuestionnaireList', {
@@ -779,5 +912,18 @@ text-decoration: none;
 }
 .el-message-box__wrapper{
   z-index: 9999;
+}
+.resultDialog{
+  /*position: relative;*/
+}
+.resultDialogBox{
+  height: 700px;
+}
+.resultDialogBox-table{
+  padding: 0 80px 0;
+}
+.pagination{
+  margin-top: 30px;
+  text-align: center;
 }
 </style>

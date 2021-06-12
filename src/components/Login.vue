@@ -1,5 +1,5 @@
 <template>
-  <div class="main">
+  <div class="main" v-loading="loading">
     <div class="header">
       <img src="../assets/img/logo.png" alt="#" class="logo">
       <div class="header-button">
@@ -28,6 +28,7 @@ export default {
   name: 'Login',
   data() {
     return {
+      loading:false,
       userName: '',
       psw: '',
     };
@@ -54,6 +55,12 @@ export default {
         }
       })
     }
+  },
+  created() {
+    this.loading=true
+    setTimeout(()=>{
+      this.loading=false
+    },400)
   }
 };
 </script>

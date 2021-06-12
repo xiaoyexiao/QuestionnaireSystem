@@ -1,5 +1,5 @@
 <template>
-<div class="container" v-loading="loading">
+<div class="container">
   <div class="head">
     <div class="w">
       <div class="submitButton" @click="onSubmit">
@@ -9,7 +9,7 @@
     </div>
   </div>
   <div class="header w"></div>
-  <div class="w">
+  <div class="w" v-loading="loading">
     <div class="content" ref="container">
       <div class="content-header">
         <span>{{ headTitle }}</span>
@@ -393,7 +393,7 @@ export default {
                 label:'2'
               }
             ],
-            checkList: []
+            answer: []
           }
           break
         }
@@ -403,15 +403,13 @@ export default {
             style:3,
             question:'默认题目',
             must:false,
-            answer: ''
+            answer: '',
+            options:[{}]
           }
           break
         }
       }
       this.List.push(newItem)
-    },
-    test(){
-      //
     },
     onSubmit(){
       this.$confirm('完成编辑，提交问卷?', '提示', {
@@ -502,7 +500,7 @@ export default {
     this.loading = true
     setTimeout(() => {
       this.loading = false
-    }, 800)
+    }, 600)
   },
   mounted() {
     if(window.location.href.indexOf('questionnaireCreate')!==-1){

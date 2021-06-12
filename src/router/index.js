@@ -8,6 +8,7 @@ import QuestionnaireEdit from "../components/QuestionnaireEdit";
 import QuestionnaireCheck from "../components/QuestionnaireCheck";
 import QuestionnaireCreate from "../components/QuestionnaireCreate";
 import NotFound from "../components/NotFound";
+import Skip from "../components/Skip";
 
 Vue.use(Router);
 
@@ -42,6 +43,11 @@ export default new Router({
       path: '/questionnaireResult',
       name: 'QuestionnaireResult',
       component: QuestionnaireResult,
+    },
+    {
+      path: '/skipping',
+      name: 'Skip',
+      component: Skip
     },
     {
       path: '/questionnaireCheck',
