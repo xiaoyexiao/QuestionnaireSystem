@@ -37,7 +37,7 @@
           <span style="display: block;margin-bottom:20px;text-align: center;font-size: 26px;font-weight: bold;">“{{this.resultDialogConfig.title}}”调查结果</span>
         </div>
         <div class="resultDialogBox-table">
-          <el-table style="width: 100%" :data="answers.slice((currentPage-1)*pageSize,currentPage*pageSize)" border stripe>
+          <el-table style="width: 100%" :data="answers.slice((currentPage-1)*pageSize,currentPage*pageSize)" border stripe height="530px">
             <el-table-column v-for="(item,index) in questions" :key="index" :prop="item" :label="item" :width="getWidth(item,index)"></el-table-column>
           </el-table>
         </div>
@@ -917,7 +917,7 @@ text-decoration: none;
   /*position: relative;*/
 }
 .resultDialogBox{
-  height: 700px;
+  height: 650px;
 }
 .resultDialogBox-table{
   padding: 0 80px 0;
